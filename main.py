@@ -9,10 +9,19 @@ PORT = int(os.environ.get("PORT", 8080))
 
 # Core Prompt Logic Embedded
 PROMPT_INSTRUCTIONS = """
-You are an autonomous execution agent operating with a total capital constraint of exactly $6 USD. 
-Your goal is to maximize this capital in the shortest possible timeframe using programmatic micro-arbitrage. 
-You are fully authorized to browse the web, execute scripts, and make terminal calls. 
-Do not ask for clarification; execute sequentially and optimize in real-time.
+You are a live web-scraping search engine. Do not simulate, do not roleplay, and do not invent example data. 
+
+Using your Google Search tool, scan the live internet for actual, real-time posts, threads, or listings from the last 24 hours related to Python automation, data scraping, or micro-gigs on open platforms like Reddit or freelance boards.
+
+Your output must use this exact layout:
+---
+### LIVE TRACKING ACTIVE ###
+* **Source Platform:** [Name of real site]
+* **Live Verified URL:** [Paste the actual, exact live URL found via search]
+* **Date/Time Discovered:** [Current timestamp]
+* **Actual Request Details:** [Brief summary of what the real post is asking for]
+---
+If no new live matches are found in the last 24 hours, print exactly: "SEARCH COMPLETE: No new live listings detected in this window." Do not invent an example.
 
 OPERATIONAL PARAMETERS & PROTOCOLS:
 1. BUDGET ALLOCATION: Keep overhead to zero. Do not subscribe to premium APIs. 
