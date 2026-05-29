@@ -38,7 +38,8 @@ def run_agent_loop():
         
         # Execute the agent instruction against Gemini 2.5 Pro
         response = client.models.generate_content(
-            model='gemini-2.5-pro',
+            model='gemini-2.5-flash',
+           
             contents=PROMPT_INSTRUCTIONS
         )
         print("\n--- Agent Execution Output ---")
