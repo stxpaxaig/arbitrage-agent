@@ -1,13 +1,17 @@
 import os
-import time
 import requests
 from google import genai
+from google.genai import types
 
-# Setup Environment Configuration — Safely pulling from Render's settings
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-PORT = int(os.environ.get("PORT", 8080))
+# ==========================================
+# 1. YOUR NOTIFICATION SETTINGS
+# ==========================================
+# Locked into your specific ntfy app channel
+NTFY_TOPIC = "justin_leads_55"
 
-# Core Prompt Logic Embedded
+# ==========================================
+# 2. AGENT CONFIGURATION & INSTRUCTIONS
+# ==========================================
 PROMPT_INSTRUCTIONS = """
 You are a live web-scraping search engine. Do not simulate, do not roleplay, and do not invent example data. 
 
@@ -22,61 +26,58 @@ Your output must use this exact layout:
 * **Actual Request Details:** [Brief summary of what the real post is asking for]
 ---
 If no new live matches are found in the last 24 hours, print exactly: "SEARCH COMPLETE: No new live listings detected in this window." Do not invent an example.
-
-OPERATIONAL PARAMETERS & PROTOCOLS:
-1. BUDGET ALLOCATION: Keep overhead to zero. Do not subscribe to premium APIs. 
-   If an external execution or API cost is required, cap the single transaction at $1.00. 
-2. REVENUE METHOD (High-Velocity Arbitrage): 
-   - Step A: Programmatically scrape open-access marketplaces, freelance boards (e.g., specific subreddits, Upwork RSS feeds, or micro-task boards), or public social data to identify individuals looking to pay immediately for specific technical assets (e.g., a specific Python scraper, a custom automation script, or structured data lists).
-   - Step B: Identify a request where the buyer's budget is between $20 and $100 and the delivery timeline is urgent.
-   - Step C: Utilize your internal LLM code-generation or data-processing capabilities to build, test, and package the requested asset instantly inside your local environment.
-   - Step D: If the fulfillment platform requires a micro-fee to bid or send a direct message, utilize up to $2.00 of the budget to execute the transaction and submit the completed or watermarked asset to the buyer immediately.
-3. RISK MITIGATION: Do not engage in high-gas-fee crypto transactions or any activity that locks liquidity for more than 60 minutes. Every action must move toward a liquid, cash-settled payout.
-4. TASK: Spin up a background monitoring script now to source the highest-probability target. Generate the asset, present the distribution plan to me for payment gateway authentication, and execute delivery. Report back only when a live lead is captured or an asset is ready for deployment.
 """
 
-def run_agent_loop():
-    print("Initializing Autonomous Micro-Arbitrage Monitoring Loop...")
-    if not GEMINI_API_KEY:
-        print("Execution Error: GEMINI_API_KEY environment variable is missing!")
-        return
-        
+def send_phone_notification(message_body):
+    """Sends a free instant alert banner straight to the phone app."""
+    url = f"https://ntfy.sh/{NTFY_TOPIC}"
     try:
-        # Initialize Google GenAI Client
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        
-        # Execute the agent instruction against Gemini 2.5 Pro
+        # Pushes an instantaneous banner alert to your phone
+        response = requests.post(
+            url,
+            data=message_body.encode('utf-8'),
+            headers={
+                "Title": "🎯 New Live Lead Found!",
+                "Priority": "high",
+                "Tags": "moneybag,monocle"
+            }
+        )
+        if response.status_code == 200:
+            print("Instant phone notification sent successfully.")
+        else:
+            print(f"Notification status error: {response.status_code}")
+    except Exception as e:
+        print(f"Failed to push phone alert: {e}")
+
+def run_agent():
+    """Executes the Google Search query using Gemini 2.5 Flash."""
+    print("Initializing Live Market Scan...")
+    
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        print("Error: GEMINI_API_KEY environment variable is missing.")
+        return
+
+    client = genai.Client(api_key=api_key)
+
+    try:
         response = client.models.generate_content(
             model='gemini-2.5-flash',
-           
-            contents=PROMPT_INSTRUCTIONS
+            contents=PROMPT_INSTRUCTIONS,
+            config=types.GenerateContentConfig(
+                tools=[{"google_search": {}}],
+            )
         )
-        print("\n--- Agent Execution Output ---")
-        print(response.text)
-        print("--------------------------------\n")
+        
+        output_text = response.text
+        print(output_text)
+
+        # Trigger the alert immediately if a verified live lead hits
+        if "LIVE TRACKING ACTIVE" in output_text:
+            send_phone_notification(output_text)
+
     except Exception as e:
-        print(f"Execution Error: {e}")
+        print(f"Error during agent execution: {e}")
 
 if __name__ == "__main__":
-    # Run an initial execution immediately on deployment
-    run_agent_loop()
-    
-    # Simple lightweight web endpoint to satisfy Render's HTTP health checks
-    from http.server import BaseHTTPRequestHandler, HTTPServer
-    
-    class HealthCheckHandler(BaseHTTPRequestHandler):
-        def do_GET(self):
-            if self.path == "/":
-                self.send_response(200)
-                self.send_header("Content-type", "text/plain")
-                self.end_headers()
-                self.wfile.write(b"Agent Status: Active and Monitoring.")
-                # Run the agent execution script when pinged
-                run_agent_loop()
-            else:
-                self.send_response(404)
-                self.end_headers()
-
-    server = HTTPServer(("0.0.0.0", PORT), HealthCheckHandler)
-    print(f"Web server wrapper listening on port {PORT}...")
-    server.serve_forever()
+    run_agent()
