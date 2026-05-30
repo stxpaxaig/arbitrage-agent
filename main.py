@@ -1,7 +1,7 @@
-
 import os
 import requests
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from google import genai
 from google.genai import types
@@ -21,18 +21,20 @@ Using your Google Search tool, scan the live internet for actual, real-time post
 
 Your output must use this exact layout:
 ---
-### LIVE
-If no new live matches are found in the last 24 hours, print exactly: "SEARCH COMPLETE: No new live listings detected in this window." Do not invent an example.
-def  TRACKING ACTIVE ###
+### LIVE TRACKING ACTIVE ###
 * **Source Platform:** [Name of real site]
 * **Live Verified URL:** [Paste the actual, exact live URL found via search]
 * **Date/Time Discovered:** [Current timestamp]
-* **Actual Request Details:** [Brief summary of what thel real post is asking for]
----send_phone_notification(message_body):
+* **Actual Request Details:** [Brief summary of what the real post is asking for]
+---
+If no new live matches are found in the last 24 hours, print exactly: "SEARCH COMPLETE: No new live listings detected in this window." Do not invent an example.
+"""
+
+def send_phone_notification(message_body):
     """Sends a free instant alert banner straight to the phone app."""
     url = f"https://ntfy.sh/{NTFY_TOPIC}"
     try:
-        # Emojis stripped out to prevent the latin-1 encoding crash
+        # Cleaned headers: All emojis stripped to prevent latin-1 encoding crashes
         response = requests.post(
             url,
             data=message_body.encode('utf-8'),
@@ -47,7 +49,6 @@ def  TRACKING ACTIVE ###
             print(f"Notification status error: {response.status_code}")
     except Exception as e:
         print(f"Failed to push phone alert: {e}")
-
 
 def run_agent():
     """Executes the Google Search query using Gemini 2.5 Flash."""
@@ -79,7 +80,7 @@ def run_agent():
         print(f"Error during agent execution: {e}")
 
 # ==========================================
-# 3. RENDER ALIVE LISTENER
+# 3. CONTINUOUS LOOP & ALIVE MONITORS
 # ==========================================
 class SimpleServer(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -89,17 +90,30 @@ class SimpleServer(BaseHTTPRequestHandler):
         self.wfile.write(b"Agent Active")
 
     def log_message(self, format, *args):
-        return # Keeps the logs clean from standard web traffic pings
+        return # Keeps logs completely clean from system traffic pings
 
 def start_web_server():
-    # Binds to the port Render requires to declare a service active
+    # Binds to port 10000 which Render expects to keep web services active
     server = HTTPServer(('0.0.0.0', 10000), SimpleServer)
     server.serve_forever()
 
+def continuous_loop():
+    """Runs the market scan, then waits 15 minutes to run it again forever."""
+    while True:
+        try:
+            run_agent()
+        except Exception as e:
+            print(f"Loop error: {e}")
+        
+        # Wait 15 minutes (900 seconds) before scanning Google again
+        print("Waiting 15 minutes for next scheduled market scan...")
+        time.sleep(900)
+
 if __name__ == "__main__":
-    # 1. Fire the market search immediately on boot
-    threading.Thread(target=run_agent).start()
+    # 1. Start the infinite search loop in a background thread
+    threading.Thread(target=continuous_loop, daemon=True).start()
     
-    # 2. Keep the server up so the build status switches to "Live"
+    # 2. Keep the server port alive so Render status stays green
     print("Starting background listener on port 10000...")
     start_web_server()
+
