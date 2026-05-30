@@ -28,19 +28,17 @@ Your output must use this exact layout:
 * **Actual Request Details:** [Brief summary of what the real post is asking for]
 ---
 If no new live matches are found in the last 24 hours, print exactly: "SEARCH COMPLETE: No new live listings detected in this window." Do not invent an example.
-"""
-
 def send_phone_notification(message_body):
     """Sends a free instant alert banner straight to the phone app."""
     url = f"https://ntfy.sh/{NTFY_TOPIC}"
     try:
+        # Emojis stripped out to prevent the latin-1 encoding crash
         response = requests.post(
             url,
             data=message_body.encode('utf-8'),
             headers={
-                "Title": "🎯 New Live Lead Found!",
-                "Priority": "high",
-                "Tags": "moneybag,monocle"
+                "Title": "New Live Lead Found",
+                "Priority": "high"
             }
         )
         if response.status_code == 200:
@@ -49,6 +47,7 @@ def send_phone_notification(message_body):
             print(f"Notification status error: {response.status_code}")
     except Exception as e:
         print(f"Failed to push phone alert: {e}")
+
 
 def run_agent():
     """Executes the Google Search query using Gemini 2.5 Flash."""
