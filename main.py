@@ -63,7 +63,7 @@ def check_feeds():
                 selftext = post_data.get('selftext', '')
                 
                 # Filter keywords for matching gigs
-                keywords = ['python', 'scrape', 'scraper', 'automation', 'bot', 'script']
+                keywords = ['leads', 'lead gen', 'lead generation', 'find clients', 'contact list', 'data entry', 'emails', 'scraped list']
                 match = any(word in title.lower() or word in selftext.lower() for word in keywords)
                 
                 if match and post_id not in SEEN_POSTS:
