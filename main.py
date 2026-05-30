@@ -1,12 +1,14 @@
+
 import os
 import requests
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from google import genai
 from google.genai import types
 
 # ==========================================
 # 1. YOUR NOTIFICATION SETTINGS
 # ==========================================
-# Locked into your specific ntfy app channel
 NTFY_TOPIC = "justin_leads_55"
 
 # ==========================================
@@ -32,7 +34,6 @@ def send_phone_notification(message_body):
     """Sends a free instant alert banner straight to the phone app."""
     url = f"https://ntfy.sh/{NTFY_TOPIC}"
     try:
-        # Pushes an instantaneous banner alert to your phone
         response = requests.post(
             url,
             data=message_body.encode('utf-8'),
@@ -72,12 +73,34 @@ def run_agent():
         output_text = response.text
         print(output_text)
 
-        # Trigger the alert immediately if a verified live lead hits
         if "LIVE TRACKING ACTIVE" in output_text:
             send_phone_notification(output_text)
 
     except Exception as e:
         print(f"Error during agent execution: {e}")
 
+# ==========================================
+# 3. RENDER ALIVE LISTENER
+# ==========================================
+class SimpleServer(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"Agent Active")
+
+    def log_message(self, format, *args):
+        return # Keeps the logs clean from standard web traffic pings
+
+def start_web_server():
+    # Binds to the port Render requires to declare a service active
+    server = HTTPServer(('0.0.0.0', 10000), SimpleServer)
+    server.serve_forever()
+
 if __name__ == "__main__":
-    run_agent()
+    # 1. Fire the market search immediately on boot
+    threading.Thread(target=run_agent).start()
+    
+    # 2. Keep the server up so the build status switches to "Live"
+    print("Starting background listener on port 10000...")
+    start_web_server()
