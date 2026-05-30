@@ -12,7 +12,10 @@ REDDIT_URLS = [
     "https://www.reddit.com/r/PythonJobs/new.json?limit=5",
     "https://www.reddit.com/r/slavelabour/new.json?limit=5",
     "https://www.reddit.com/r/forhire/new.json?limit=5"
+
 ]
+
+
 
 # Cache to prevent duplicate alerts
 SEEN_POSTS = set()
