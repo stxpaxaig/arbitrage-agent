@@ -21,14 +21,14 @@ Using your Google Search tool, scan the live internet for actual, real-time post
 
 Your output must use this exact layout:
 ---
-### LIVE TRACKING ACTIVE ###
+### LIVE
+If no new live matches are found in the last 24 hours, print exactly: "SEARCH COMPLETE: No new live listings detected in this window." Do not invent an example.
+def  TRACKING ACTIVE ###
 * **Source Platform:** [Name of real site]
 * **Live Verified URL:** [Paste the actual, exact live URL found via search]
 * **Date/Time Discovered:** [Current timestamp]
-* **Actual Request Details:** [Brief summary of what the real post is asking for]
----
-If no new live matches are found in the last 24 hours, print exactly: "SEARCH COMPLETE: No new live listings detected in this window." Do not invent an example.
-def send_phone_notification(message_body):
+* **Actual Request Details:** [Brief summary of what thel real post is asking for]
+---send_phone_notification(message_body):
     """Sends a free instant alert banner straight to the phone app."""
     url = f"https://ntfy.sh/{NTFY_TOPIC}"
     try:
